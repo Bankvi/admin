@@ -83,7 +83,7 @@ export default function LoginPage() {
             <ShieldCheck size={32} className="text-gold" />
           </div>
           <h1 className="font-display text-3xl font-bold text-primary">BankVi</h1>
-          <p className="text-muted text-sm mt-1">Interface d'administration sécurisée</p>
+          <p className="text-muted text-sm mt-1">Interface d&apos;administration sécurisée</p>
         </div>
 
         {/* Step indicator */}
