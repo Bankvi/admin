@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
 
-@tailwind base;
+/*@tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities;*/
+
+@import "tailwindcss";
 
 /* ── Design Tokens ───────────────────────────────────────── */
 :root {
@@ -53,7 +55,8 @@
 }
 
 /* ── Base ─────────────────────────────────────────────────── */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* { box-sizing: border-box; margin: 0; padding: 0; }
+*/
 
 html { font-family: 'DM Sans', sans-serif; scroll-behavior: smooth; }
 
