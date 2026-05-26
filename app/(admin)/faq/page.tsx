@@ -18,22 +18,47 @@ export default function FAQPage() {
   const [isNew, setIsNew] = useState(false)
   const [deleteItem, setDeleteItem] = useState<FAQ | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [grouped, setGrouped] = useState<{ cat: string, label: string, items: FAQ[] }[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const result = await faqApi.adminList()
-      setItems(result.data)
+      const data = Array.isArray(result.data) ? result.data : result.data.results;
+      setItems(data);
+      setGrouped(Object.entries(CATEGORIES).map(([cat, label]) => ({
+        cat, label, items: data.filter(f => f.category === cat).sort((a, b) => a.order - b.order)
+      })))
       setIsMock(result.isMock)
     } catch { toast.error('Erreur de chargement') }
     finally { setLoading(false) }
+
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { 
+    const loadData = async () => {
+      await load();
+    };
+    loadData();
+    // load()
+  }, [load])
 
-  const grouped = Object.entries(CATEGORIES).map(([cat, label]) => ({
+  /*const grouped = Object.entries(CATEGORIES).map(([cat, label]) => ({
+
     cat, label, items: items.filter(f => f.category === cat).sort((a, b) => a.order - b.order)
+
   }))
+
+  const grouped = Object.entries(CATEGORIES).map(([cat, label]) => {
+    // On s'assure que items est bien un tableau, sinon on utilise un tableau vide []
+    const safeItems = Array.isArray(items) ? items : [];
+
+    return {
+      cat,
+      label,
+      items: safeItems.filter(f => f.category === cat).sort((a, b) => a.order - b.order)
+    };
+  });*/
 
   const handleSave = async () => {
     if (!editItem?.question?.trim() || !editItem?.answer?.trim()) { toast.error('Question et réponse requises'); return }

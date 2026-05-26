@@ -84,6 +84,19 @@ async function withFallback<T>(fn: () => Promise<T>, fallback: T): Promise<{ dat
   }
 }
 
+async function withCustumFallback<T>(fn: () => Promise<T>, fallback: T): Promise<{ data: T; isMock: boolean }> {
+  try {
+    const data = await fn()
+    return { data, isMock: false }
+  } catch (e) {
+    const err = e instanceof Error ? e.message : ''
+    if (err === 'NETWORK_ERROR' || err.includes('503') || err.includes('502') || err.includes('504')) {
+      return { data: fallback, isMock: true }
+    }
+    throw e
+  }
+}
+
 // ── Auth ─────────────────────────────────────────────────────
 export const auth = {
   // Étape 1 : login → envoie l'OTP si 2FA
@@ -190,10 +203,13 @@ export const faq = {
     const { MOCK_FAQS } = await import('./mock')
     return withFallback(() => get<FAQ[]>('/public/faq/'), MOCK_FAQS)
   },
+
   adminList: async () => {
     const { MOCK_FAQS } = await import('./mock')
-    return withFallback(() => get<FAQ[]>('/admin-panel/faq/'), MOCK_FAQS)
+
+    return withFallback(() => get<FAQ[] | { count: number; results: FAQ[] }>('/admin-panel/faq/'), MOCK_FAQS)
   },
+
   create: (data: Partial<FAQ>) => post<FAQ>('/admin-panel/faq/', data),
   update: (id: string, data: Partial<FAQ>) => patch<FAQ>(`/admin-panel/faq/${id}/`, data),
   delete: (id: string) => del(`/admin-panel/faq/${id}/`),
