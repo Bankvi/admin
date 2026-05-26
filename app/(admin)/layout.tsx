@@ -89,8 +89,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, var(--gold-light), var(--gold-dark))', boxShadow: '0 4px 12px var(--gold-glow)' }}>
-              <ShieldCheck size={16} className="text-white" />
+              style={{boxShadow: '0 4px 12px var(--gold-glow)' }}>
+             {/* <ShieldCheck size={16} className="text-white" />*/}
+              <img src="/logo.png" alt="BankVi" className="w-8 h-8" />
             </div>
             <span className="font-display font-bold text-lg text-primary">BankVi</span>
           </div>

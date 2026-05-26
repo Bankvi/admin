@@ -80,7 +80,8 @@ export default function LoginPage() {
         <div className="text-center mb-10 animate-fade-in">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass mb-4"
             style={{ boxShadow:'0 0 0 1px var(--gold-glow),0 8px 32px var(--gold-glow)' }}>
-            <ShieldCheck size={32} className="text-gold" />
+            {/*<ShieldCheck size={32} className="text-gold" />*/}
+            <img src="/logo.png" alt="BankVi" className="w-10 h-10" />
           </div>
           <h1 className="font-display text-3xl font-bold text-primary">BankVi</h1>
           <p className="text-muted text-sm mt-1">Interface d&apos;administration sécurisée</p>
