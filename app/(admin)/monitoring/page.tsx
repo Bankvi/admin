@@ -14,6 +14,7 @@ const COLLECTIONS = [
   { key: 'kyc_reviews',      label: '✅ Révisions KYC', color: 'text-teal-400' },
   { key: 'user_registrations',    label: '👨‍👨‍👦‍👦 Inscriptions utilisateur', color: 'text-orange-400' },
   { key: 'fedapay_webhooks',    label: '🔗 Webhooks Fedapay', color: 'text-gold' },
+  { key: 'admin_actions',    label: '꧁𓊈𒆜OWNER𒆜𓊉꧂', color: 'text-blue-500'},
   { key: 'errors',    label: '� Erreur en Requêtes', color: 'text-red-500' },
 ]
 
