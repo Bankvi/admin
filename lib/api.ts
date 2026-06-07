@@ -180,6 +180,13 @@ export const notifs = {
 }
 
 // ── Blog ─────────────────────────────────────────────────────
+export interface responsePost{
+  count : number;
+  next : string | null;
+  previous : string | null;
+  results : BlogPost[];
+}
+
 export const blog = {
   list: async () => {
     const { MOCK_BLOG } = await import('./mock')
@@ -189,7 +196,7 @@ export const blog = {
   // Admin CRUD (routes à ajouter au backend si nécessaire)
   adminList: async () => {
     const { MOCK_BLOG } = await import('./mock')
-    return withFallback(() => get<BlogPost[]>('/admin-panel/blog/'), MOCK_BLOG)
+    return withFallback(() => get<responsePost>('/admin-panel/blog/'), {count : MOCK_BLOG.length, next: null, previous: null, results: MOCK_BLOG})
   },
   create: (data: Partial<BlogPost>) => post<BlogPost>('/admin-panel/blog/', data),
   update: (id: string, data: Partial<BlogPost>) => patch<BlogPost>(`/admin-panel/blog/${id}/`, data),
@@ -318,8 +325,8 @@ export interface Notification {
 }
 export interface BlogPost {
   id: string; title: string; title_en: string; slug: string
-  excerpt: string; content: string; is_published: boolean
-  author: User; published_at: string | null; created_at: string
+  excerpt: string; content: string; content_en: string; is_published: boolean
+  author?: User; published_at: string | null; created_at: string
 }
 export interface FAQ {
   id: string; question: string; answer: string

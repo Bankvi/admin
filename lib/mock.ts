@@ -90,13 +90,13 @@ export const MOCK_NOTIFICATIONS: Notification[] = Array.from({ length: 20 }, (_,
 
 export const MOCK_BLOG: BlogPost[] = [
   { id:'bp-1', title:'Qu\'est-ce qu\'une tontine et pourquoi la digitaliser ?', title_en:'What is a tontine?', slug:'qu-est-ce-qu-une-tontine',
-    excerpt:'La tontine est l\'une des pratiques financières les plus anciennes d\'Afrique de l\'Ouest.', content:'[contenu complet de l\'article…]',
+    excerpt:'La tontine est l\'une des pratiques financières les plus anciennes d\'Afrique de l\'Ouest.', content:'[contenu complet de l\'article…]',content_en:'[contenu complet de l\'article…]',
     is_published:true, author: MOCK_USERS[0], published_at: new Date(Date.now()-60*86400000).toISOString(), created_at: new Date(Date.now()-62*86400000).toISOString() },
   { id:'bp-2', title:'Comment fonctionne la blockchain dans BankVi ?', title_en:'How does blockchain work in BankVi?', slug:'blockchain-bankvi',
-    excerpt:'BankVi utilise Polygon pour garantir la transparence des transactions critiques.', content:'[contenu…]',
+    excerpt:'BankVi utilise Polygon pour garantir la transparence des transactions critiques.', content:'[contenu…]',content_en:'[contenu…]',
     is_published:true, author: MOCK_USERS[0], published_at: new Date(Date.now()-45*86400000).toISOString(), created_at: new Date(Date.now()-47*86400000).toISOString() },
   { id:'bp-3', title:'Guide complet onboarding BankVi', title_en:'BankVi onboarding guide', slug:'guide-onboarding',
-    excerpt:'[Brouillon] Guide pas à pas pour les nouveaux utilisateurs.', content:'[brouillon…]',
+    excerpt:'[Brouillon] Guide pas à pas pour les nouveaux utilisateurs.', content:'[brouillon…]',content_en:'[brouillon…]',
     is_published:false, author: MOCK_USERS[1], published_at: null, created_at: new Date(Date.now()-5*86400000).toISOString() },
 ]
 

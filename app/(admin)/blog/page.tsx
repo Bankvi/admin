@@ -21,7 +21,7 @@ export default function BlogPage() {
     setLoading(true)
     try {
       const result = await blogApi.adminList()
-      setItems(result.data)
+      setItems(result.data.results)
       setIsMock(result.isMock)
     } catch { toast.error('Erreur de chargement') }
     finally { setLoading(false) }
@@ -29,11 +29,11 @@ export default function BlogPage() {
 
   useEffect(() => { load() }, [load])
 
-  const filtered = items.filter(p =>
+  const filtered = items?.filter(p =>
     !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.excerpt.toLowerCase().includes(search.toLowerCase())
   )
 
-  const openNew = () => { setEditPost({ title: '', title_en: '', excerpt: '', content: '', is_published: false }); setIsNew(true) }
+  const openNew = () => { setEditPost({ title: '', title_en: '', excerpt: '', content: '', content_en: '', is_published: false }); setIsNew(true) }
   const openEdit = (p: BlogPost) => { setEditPost({ ...p }); setIsNew(false) }
 
   const handleSave = async () => {
@@ -147,10 +147,16 @@ export default function BlogPage() {
               <textarea value={editPost.excerpt || ''} onChange={e => setEditPost(p => ({ ...p, excerpt: e.target.value }))}
                 rows={2} className="input-glass resize-none" placeholder="Résumé court de l'article" />
             </div>
+            
             <div>
-              <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Contenu (Markdown)</label>
+              <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Contenu (FR) (Markdown)</label>
               <textarea value={editPost.content || ''} onChange={e => setEditPost(p => ({ ...p, content: e.target.value }))}
                 rows={10} className="input-glass resize-y font-mono text-xs" placeholder="Contenu de l'article en Markdown…" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Contenu (EN) (Markdown)</label>
+              <textarea value={editPost.content_en || ''} onChange={e => setEditPost(p => ({ ...p, content_en: e.target.value }))}
+                rows={10} className="input-glass resize-y font-mono text-xs" placeholder="Content in English in Markdown…" />
             </div>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 cursor-pointer">
