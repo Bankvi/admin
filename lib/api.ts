@@ -175,7 +175,7 @@ export const notifs = {
   list: async (params?: string) => {
     const { MOCK_NOTIFICATIONS } = await import('./mock')
     const mock: PaginatedResponse<Notification> = { count: MOCK_NOTIFICATIONS.length, next: null, previous: null, results: MOCK_NOTIFICATIONS }
-    return withFallback(() => get<PaginatedResponse<Notification>>(`/notifications/${params ? '?'+params : ''}`), mock)
+    return withFallback(() => get<PaginatedResponse<Notification>>(`/admin-panel/notifications/${params ? '?'+params : ''}`), mock)
   },
 }
 
