@@ -80,7 +80,8 @@ export default function LoginPage() {
         <div className="text-center mb-10 animate-fade-in">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass mb-4"
             style={{ boxShadow:'0 0 0 1px var(--gold-glow),0 8px 32px var(--gold-glow)' }}>
-            <ShieldCheck size={32} className="text-gold" />
+            {/*<ShieldCheck size={32} className="text-gold" />*/}
+            <img src="/logo.png" alt="BankVi" className="w-10 h-10" />
           </div>
           <h1 className="font-display text-3xl font-bold text-primary">BankVi</h1>
           <p className="text-muted text-sm mt-1">Interface d&apos;administration sécurisée</p>
@@ -112,18 +113,18 @@ export default function LoginPage() {
               <form onSubmit={handleCredentials} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Téléphone</label>
-                  <div className="relative">
+                  <div className="relative flex flex-row">
                     <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                     <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                      placeholder="+22890000001" className="input-glass pl-10" required autoComplete="tel" />
+                      placeholder="+22890000001" className="input-glass-log pl-10 pr-10 pt-4 pb-4" required autoComplete="tel" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Mot de passe</label>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted mr-10" />
                     <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                      placeholder="••••••••" className="input-glass pl-10 pr-10" required autoComplete="current-password" />
+                      placeholder="••••••••" className="input-glass-log pl-10 pr-10 pt-4 pb-4" required autoComplete="current-password" />
                     <button type="button" onClick={() => setShowPwd(!showPwd)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-gold transition-colors">
                       {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}

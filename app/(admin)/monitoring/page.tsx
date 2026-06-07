@@ -7,11 +7,15 @@ import { Activity, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react'
 const COLLECTIONS = [
   { key: 'auth_logins',      label: '🔑 Connexions', color: 'text-green-400' },
   { key: 'auth_failures',    label: '🚫 Échecs auth', color: 'text-red-400' },
-  { key: 'esso_actions',     label: '🔄 Actions ESSO', color: 'text-blue-400' },
+  { key: 'esso_events',     label: '🔄 Actions ESSO', color: 'text-blue-400' },
   { key: 'esso_draws',       label: '🎰 Tirages ESSO', color: 'text-gold' },
+  { key: 'transactions',       label: '💱 Transactions', color: 'text-green-500' },
   { key: 'kyc_submissions',  label: '📤 Soumissions KYC', color: 'text-purple-400' },
   { key: 'kyc_reviews',      label: '✅ Révisions KYC', color: 'text-teal-400' },
-  { key: 'admin_actions',    label: '🛡️ Actions admin', color: 'text-orange-400' },
+  { key: 'user_registrations',    label: '👨‍👨‍👦‍👦 Inscriptions utilisateur', color: 'text-orange-400' },
+  { key: 'fedapay_webhooks',    label: '🔗 Webhooks Fedapay', color: 'text-gold' },
+  { key: 'admin_actions',    label: '꧁𓊈𒆜OWNER𒆜𓊉꧂', color: 'text-blue-500'},
+  { key: 'errors',    label: '� Erreur en Requêtes', color: 'text-red-500' },
 ]
 
 export default function MonitoringPage() {

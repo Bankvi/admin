@@ -47,7 +47,7 @@ export default function DashboardPage() {
       <div className="animate-fade-in">
         <h1 className="font-display text-3xl font-bold text-primary">Tableau de bord</h1>
         <p className="text-muted text-sm mt-1">
-          Vue d'ensemble BankVi — {new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+          Vue d&apos;ensemble BankVi — {new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
         </p>
       </div>
 
@@ -92,7 +92,8 @@ export default function DashboardPage() {
                 <Pie data={kycData} cx="50%" cy="50%" innerRadius={52} outerRadius={80} dataKey="value" strokeWidth={0}>
                   {kycData.map((_, i) => <Cell key={i} fill={GOLD[i]} />)}
                 </Pie>
-                <Tooltip {...TT_STYLE} formatter={(v: number) => [v + ' utilisateurs']} />
+                {/*<Tooltip {...TT_STYLE} formatter={(v: number) => [v + ' utilisateurs']} />*/}
+                <Tooltip {...TT_STYLE} formatter={(v: any) => [`${v ?? 0} utilisateurs`]} />
               </PieChart>
             </ResponsiveContainer>
             <div className="space-y-3">
@@ -130,7 +131,7 @@ export default function DashboardPage() {
 
       {/* Quick numbers */}
       <div className="glass-card p-6 animate-fade-in">
-        <h3 className="font-display font-semibold text-primary mb-5">Activité aujourd'hui</h3>
+        <h3 className="font-display font-semibold text-primary mb-5">Activité aujourd&apos;hui</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-x divide-white/5">
           {[
             { label:'Transactions', v: stats?.transactions_today?.count ?? 0 },
