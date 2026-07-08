@@ -25,7 +25,7 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
       <div className={`modal-box ${sizeClass}`}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-xl font-semibold text-primary">{title}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-white/10 transition-all">
+          <button title='close' onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl text-muted hover:text-primary hover:bg-white/10 transition-all">
             <X size={18} />
           </button>
         </div>
@@ -72,6 +72,7 @@ const BADGE_MAP: Record<string, string> = {
   unread: 'badge-pending', in_progress: 'badge-submitted', resolved: 'badge-verified',
   fixed: 'badge-gold', random: 'badge-submitted', wheel: 'badge-verified',
   locked: 'badge-rejected', semi_flexible: 'badge-submitted',
+  expired: 'badge-rejected', inactive: 'badge-draft', scheduled: 'badge-submitted',
 }
 const BADGE_LABELS: Record<string, string> = {
   verified: 'Vérifié', pending: 'En attente', submitted: 'Soumis',
@@ -81,6 +82,7 @@ const BADGE_LABELS: Record<string, string> = {
   fixed: 'Rotation fixe', random: 'Aléatoire', wheel: 'Roue',
   locked: 'Bloqué', semi_flexible: 'Semi-flexible',
   monthly: 'Mensuel', weekly: 'Hebdomadaire', daily: 'Quotidien',
+  expired: 'Expirée', inactive: 'Inactive', scheduled: 'Programmée',
 }
 export function Badge({ value }: { value: string }) {
   return (
@@ -106,7 +108,7 @@ export function Pagination({ page, total, pageSize, onChange }: PagProps) {
         {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} sur {total}
       </span>
       <div className="flex items-center gap-2">
-        <button onClick={() => onChange(page - 1)} disabled={page === 1}
+        <button title='+' onClick={() => onChange(page - 1)} disabled={page === 1}
           className="w-8 h-8 flex items-center justify-center rounded-lg btn-glass disabled:opacity-30">
           <ChevronLeft size={15} />
         </button>
@@ -121,7 +123,7 @@ export function Pagination({ page, total, pageSize, onChange }: PagProps) {
             </button>
           )
         })}
-        <button onClick={() => onChange(page + 1)} disabled={page === pages}
+        <button title='suivant' onClick={() => onChange(page + 1)} disabled={page === pages}
           className="w-8 h-8 flex items-center justify-center rounded-lg btn-glass disabled:opacity-30">
           <ChevronRight size={15} />
         </button>

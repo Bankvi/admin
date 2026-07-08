@@ -1,5 +1,5 @@
 // lib/mock.ts — Données de fallback quand le backend ne répond pas
-import type { User, Esso, Transaction, Tironienne, Notification, BlogPost, FAQ, ContactMessage, DashboardStats } from './api'
+import type { User, Esso, Transaction, Tironienne, Notification, BlogPost, FAQ, ContactMessage, DashboardStats, Pubs, PubTypeLigth } from './api'
 
 export const MOCK_STATS: DashboardStats = {
   users: { total: 247, verified: 189, pending_kyc: 23 },
@@ -127,6 +127,36 @@ export const MOCK_MESSAGES: ContactMessage[] = [
   { id:'msg-5', full_name:'Gbégnon Dossou', email:'gbenou@gmail.com', subject:'Suggestion : notifications WhatsApp',
     message:'Pourriez-vous ajouter les notifications via WhatsApp ? Merci !',
     status:'unread', reply:'', replied_at:null, created_at: new Date().toISOString() },
+]
+
+export const MOCK_TYPEPUBS: PubTypeLigth[] = [
+  { id: 'type-1', key: 'promo', value: 'Promotion' },
+  { id: 'type-2', key: 'annonce', value: 'Annonce officielle' },
+  { id: 'type-3', key: 'partenariat', value: 'Partenariat' },
+]
+
+export const MOCK_PUBS: Pubs[] = [
+  { id: 'pub-1', title_fr: 'Frais réduits ce mois-ci', title_en: 'Lower fees this month',
+    description_fr: '4% → 2% sur tous les dépôts Mobile Money jusqu\'à la fin du mois.', description_en: '4% → 2% on all Mobile Money deposits until end of month.',
+    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+    publish_at: new Date(Date.now() - 4 * 86400000).toISOString(),
+    expired_at: new Date(Date.now() + 10 * 86400000).toISOString(),
+    media_url: null, media_type: 'texte', is_active: true, url: '',
+    type: MOCK_TYPEPUBS[0] },
+  { id: 'pub-2', title_fr: 'Nouveau partenariat Flooz', title_en: 'New Flooz partnership',
+    description_fr: 'BankVi s\'associe à Flooz pour des transferts instantanés sans frais.', description_en: 'BankVi partners with Flooz for instant fee-free transfers.',
+    created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
+    publish_at: new Date(Date.now() - 18 * 86400000).toISOString(),
+    expired_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+    media_url: null, media_type: 'photo', is_active: false, url: 'https://bankvi.com/partenariats',
+    type: MOCK_TYPEPUBS[2] },
+  { id: 'pub-3', title_fr: 'Lancement Tironiennes flexibles', title_en: 'Flexible Tironiennes launch',
+    description_fr: 'Découvrez le nouveau mode d\'épargne semi-flexible, disponible dès aujourd\'hui.', description_en: 'Discover the new semi-flexible savings mode, available today.',
+    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+    publish_at: new Date().toISOString(),
+    expired_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+    media_url: null, media_type: 'video', is_active: true, url: '',
+    type: MOCK_TYPEPUBS[1] },
 ]
 
 export const MOCK_LOGS = {

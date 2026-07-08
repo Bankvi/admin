@@ -1,4 +1,3 @@
-// lib/api.ts — Client API centralisé BankVi Admin
 // Toutes les routes pointent vers BACK_URL (variable d'environnement)
 // Fallback sur mockdata si le backend ne répond pas
 
@@ -20,6 +19,13 @@ export function setTokens(access: string, refresh: string) {
 export function clearTokens() {
   localStorage.removeItem('bv_access')
   localStorage.removeItem('bv_refresh')
+}
+
+// Résout un chemin média relatif (ex: /media/pubs/x.jpg) renvoyé par le backend en URL absolue.
+export function mediaUrl(path?: string | null): string | null {
+  if (!path) return null
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  return `${BASE}${path.startsWith('/') ? '' : '/'}${path}`
 }
 
 // ── Core fetch ───────────────────────────────────────────────
@@ -69,6 +75,46 @@ const post  = <T>(p: string, b: unknown) => apiFetch<T>(p, { method:'POST', body
 const patch = <T>(p: string, b: unknown) => apiFetch<T>(p, { method:'PATCH', body: JSON.stringify(b) })
 const put   = <T>(p: string, b: unknown) => apiFetch<T>(p, { method:'PUT', body: JSON.stringify(b) })
 const del   = <T>(p: string) => apiFetch<T>(p, { method:'DELETE' })
+
+// ── Multipart fetch (upload fichiers : media_url des campagnes) ──
+async function apiFetchForm<T = unknown>(path: string, method: 'POST' | 'PATCH', form: FormData, retry = true): Promise<T> {
+  const { access, refresh } = getTokens()
+  const headers: Record<string, string> = {}
+  if (access) headers['Authorization'] = `Bearer ${access}`
+  // Ne PAS fixer Content-Type ici : le navigateur doit poser lui-même le boundary multipart.
+
+  let res: Response
+  try {
+    res = await fetch(`${API}${path}`, { method, headers, body: form, signal: AbortSignal.timeout(20000) })
+  } catch {
+    throw new Error('NETWORK_ERROR')
+  }
+
+  if (res.status === 401 && retry && refresh) {
+    const r = await fetch(`${API}/auth/token/refresh/`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh }),
+    }).catch(() => null)
+    if (r?.ok) {
+      const data = await r.json()
+      setTokens(data.access, refresh)
+      return apiFetchForm(path, method, form, false)
+    } else {
+      clearTokens()
+      if (typeof window !== 'undefined') window.location.href = '/login'
+      throw new Error('Session expirée')
+    }
+  }
+
+  if (!res.ok) {
+    let msg = `Erreur ${res.status}`
+    try { const e = await res.json(); msg = e.message || e.detail || e.error || msg } catch {}
+    throw new Error(msg)
+  }
+  if (res.status === 204) return {} as T
+  const json = await res.json()
+  return (json.data !== undefined ? json.data : json) as T
+}
 
 // ── Fallback wrapper ─────────────────────────────────────────
 async function withFallback<T>(fn: () => Promise<T>, fallback: T): Promise<{ data: T; isMock: boolean }> {
@@ -234,6 +280,44 @@ export const messages = {
   updateStatus: (id: string, status: string) => patch(`/admin-panel/messages/${id}/`, { status }),
 }
 
+// ── Campagnes publicitaires (Pub) ────────────────────────────
+// Construit un FormData car le backend attend du multipart (upload média)
+function buildPubForm(data: Partial<CreatePub>, file?: File | null) {
+  const form = new FormData()
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return
+    form.append(key, typeof value === 'boolean' ? String(value) : String(value))
+  })
+  if (file) form.append('media_url', file)
+  return form
+}
+
+export const publicite = {
+  list: async () => {
+    const { MOCK_PUBS } = await import('./mock')
+    const mock: PaginatedResponse<Pubs> = { count: MOCK_PUBS.length, next: null, previous: null, results: MOCK_PUBS }
+    return withCustumFallback(() => get<PaginatedResponse<Pubs>>('/admin-panel/pub/'), mock)
+  },
+  get: async (id: string) => {
+    return withCustumFallback(() => get<Pubs | null>(`/admin-panel/pub/${id}/`), null)
+  },
+  create: (data: CreatePub, file?: File | null) =>
+    apiFetchForm<Pubs>('/admin-panel/pub/', 'POST', buildPubForm(data, file)),
+  update: (id: string, data: Partial<CreatePub>, file?: File | null) =>
+    apiFetchForm<Pubs>(`/admin-panel/pub/${id}/`, 'PATCH', buildPubForm(data, file)),
+  delete: (id: string) => del(`/admin-panel/pub/${id}/`),
+}
+
+// ── Catégories de campagne (TypePub) ──────────────────────────
+export const typepub = {
+  list: async () => {
+    const { MOCK_TYPEPUBS } = await import('./mock')
+    return withCustumFallback(() => get<PubTypeLigth[] | PaginatedResponse<PubTypeLigth>>('/admin-panel/typepub/'), MOCK_TYPEPUBS)
+  },
+  create: (data: { key: string; value: string; other?: string }) =>
+    post<PubTypeLigth>('/admin-panel/typepub/', data),
+}
+
 // ── Monitoring / Logs ────────────────────────────────────────
 export const monitoring = {
   logs: async (collection: string, limit = 50) => {
@@ -339,3 +423,57 @@ export interface ContactMessage {
 }
 export interface LogEntry { [key: string]: unknown; created_at?: string }
 export interface PaginatedResponse<T> { count: number; next: string | null; previous: string | null; results: T[] }
+
+
+export interface TypePub{
+  id : string;
+  key : string;
+  value : string;
+  other : string;
+  created_at : string;
+  pubs : Pubs[]
+}
+export interface Pubs {
+  id : string;
+  title_fr : string;
+  title_en: string;
+  description_fr : string | null;
+  description_en : string | null;
+  created_at : string;
+  publish_at : string;
+  expired_at : string | null;
+  media_url : string | null;
+  media_type : "texte"|"photo"|"video"|"image_list"|"video_list";
+  is_active : boolean;
+  url?: string | null;
+  type : PubTypeLigth
+}
+
+export interface PubTypeLigth{
+  id :  string;
+  key : string;
+  value : string;
+}
+
+export interface CreateTypePub{
+  id : string;
+  key : string;
+  value : string;
+  other : string;
+  created_at : string;
+}
+
+// Payload envoyé au backend (multipart/form-data) pour créer/modifier une campagne.
+// Le fichier média est passé séparément (voir buildPubForm) car media_url est un FileField.
+export interface CreatePub{
+  title_fr : string;
+  title_en: string;
+  description_fr? : string;
+  description_en? : string;
+  publish_at? : string;
+  expired_at? : string;
+  media_type : "texte"|"photo"|"video"|"image_list"|"video_list";
+  is_active : boolean;
+  url? : string;
+  type_id : string;
+}

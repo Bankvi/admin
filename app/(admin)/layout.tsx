@@ -8,7 +8,7 @@ import { createWebSocket } from '@/lib/api'
 import {
   LayoutDashboard, Users, RefreshCw, PiggyBank, Wallet,
   Bell, FileText, HelpCircle, Mail, Activity,
-  LogOut, Sun, Moon, ShieldCheck, Menu, X, ChevronRight
+  LogOut, Sun, Moon, ShieldCheck, Menu, X, ChevronRight, Megaphone
 } from 'lucide-react'
 
 const NAV = [
@@ -21,6 +21,7 @@ const NAV = [
   { href: '/blog', icon: FileText, label: 'Blog', roles: ['superadmin','admin','moderator'] },
   { href: '/faq', icon: HelpCircle, label: 'FAQ', roles: ['superadmin','admin','moderator'] },
   { href: '/messages', icon: Mail, label: 'Messages', roles: ['superadmin','admin','moderator'] },
+  { href: '/campagne', icon : Megaphone, label : 'Campagne', roles : ['superadmin', 'admin', 'moderator']},
   { href: '/monitoring', icon: Activity, label: 'Monitoring', roles: ['superadmin','admin','monitoring'] },
 ]
 
@@ -95,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <span className="font-display font-bold text-lg text-primary">BankVi</span>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted hover:text-primary">
+          <button title='fermer' onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted hover:text-primary">
             <X size={18} />
           </button>
         </div>
@@ -165,7 +166,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar (mobile) */}
         <header className="lg:hidden sticky top-0 z-30 glass border-b border-gold/10 px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setSidebarOpen(true)} className="text-muted hover:text-primary">
+          <button type='button' title='menu' onClick={() => setSidebarOpen(true)} className="text-muted hover:text-primary">
             <Menu size={20} />
           </button>
           <span className="font-display font-semibold text-primary">BankVi Admin</span>
