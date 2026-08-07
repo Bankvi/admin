@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { campagnes as campagneApi, type CampagneFormulaire, type CampagneFormField } from '@/lib/api'
 import { Modal, Confirm, Badge, PageHeader, Skeleton, Empty, SearchBar, useToast, fmtDate } from '@/components/ui'
-import { ClipboardList, Plus, Edit, Trash2, Globe, EyeOff, Users, X } from 'lucide-react'
+import { ClipboardList, Plus, Edit, Trash2, Globe, EyeOff, Users, X, Upload, ImageIcon } from 'lucide-react'
 
 const emptyField: CampagneFormField = { name: '', type: 'text', label: '', nullable: false }
 
@@ -14,6 +14,9 @@ export default function CampagnePage() {
   const [isMock, setIsMock] = useState(false)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
 
   const [editItem, setEditItem] = useState<Partial<CampagneFormulaire> | null>(null)
   const [isNew, setIsNew] = useState(false)
@@ -37,11 +40,39 @@ export default function CampagnePage() {
     !search || c.title.toLowerCase().includes(search.toLowerCase())
   )
 
-  const openNew = () => {
+  /*const openNew = () => {
     setEditItem({ title: '', title_en: '', slug: '', content: '', content_en: '', is_published: false, formulaire: { fields: [{ ...emptyField }] } })
     setIsNew(true)
   }
-  const openEdit = (c: CampagneFormulaire) => { setEditItem({ ...c, formulaire: c.formulaire ?? { fields: [] } }); setIsNew(false) }
+  const openEdit = (c: CampagneFormulaire) => { setEditItem({ ...c, formulaire: c.formulaire ?? { fields: [] } }); setIsNew(false) }*/
+
+  const openNew = () => {
+  setEditItem({ title: '', title_en: '', slug: '', content: '', content_en: '', is_published: false, formulaire: { fields: [{ ...emptyField }] } })
+  setIsNew(true)
+  setCoverFile(null)
+  setCoverPreview(null)
+  }
+
+  const openEdit = (c: CampagneFormulaire) => {
+    setEditItem({ ...c, formulaire: c.formulaire ?? { fields: [] } })
+    setIsNew(false)
+    setCoverFile(null)
+    setCoverPreview(c.cover_image || null)
+  }
+
+  const onCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('Le fichier doit être une image'); return }
+    if (coverPreview && coverFile) URL.revokeObjectURL(coverPreview) // libère l'ancienne preview locale
+    setCoverFile(file)
+    setCoverPreview(URL.createObjectURL(file))
+  }
+  const removeCover = () => {
+    if (coverPreview && coverFile) URL.revokeObjectURL(coverPreview)
+    setCoverFile(null)
+    setCoverPreview(null)
+  }
 
   const slugify = (s: string) => s.toLowerCase().trim()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -50,7 +81,7 @@ export default function CampagnePage() {
   const setFields = (fields: CampagneFormField[]) =>
     setEditItem(p => ({ ...p, formulaire: { fields } }))
 
-  const handleSave = async () => {
+  /*const handleSave = async () => {
     if (!editItem?.title?.trim()) { toast.error('Le titre est requis'); return }
     if (!editItem?.slug?.trim()) { toast.error('Le slug est requis'); return }
     const fields = editItem.formulaire?.fields ?? []
@@ -66,7 +97,37 @@ export default function CampagnePage() {
       if (isMock) { toast.success(isNew ? 'Créé (démo)' : 'Mis à jour (démo)'); setEditItem(null) }
       else toast.error(e instanceof Error ? e.message : 'Erreur')
     } finally { setActionLoading(false) }
+  }*/
+
+
+  const handleSave = async () => {
+    if (!editItem?.title?.trim()) { toast.error('Le titre est requis'); return }
+    if (!editItem?.slug?.trim()) { toast.error('Le slug est requis'); return }
+    const fields = editItem.formulaire?.fields ?? []
+    if (!fields.length || fields.some(f => !f.name.trim() || !f.label.trim())) {
+      toast.error('Chaque champ du formulaire doit avoir un nom et un label'); return
+    }
+    setActionLoading(true)
+    try {
+      let slug = editItem.slug!
+      if (isNew) {
+        const created = await campagneApi.create(editItem)
+        slug = created.slug
+        toast.success('Avis créé ✓')
+      } else {
+        await campagneApi.update(slug, editItem)
+        toast.success('Avis mis à jour ✓')
+      }
+      if (coverFile) {
+        await campagneApi.uploadCoverImage(slug, coverFile)
+      }
+      setEditItem(null); setCoverFile(null); setCoverPreview(null); load()
+    } catch (e: unknown) {
+      if (isMock) { toast.success(isNew ? 'Créé (démo)' : 'Mis à jour (démo)'); setEditItem(null) }
+      else toast.error(e instanceof Error ? e.message : 'Erreur')
+    } finally { setActionLoading(false) }
   }
+
 
   const handlePublishToggle = async (c: CampagneFormulaire) => {
     try {
@@ -162,6 +223,30 @@ export default function CampagnePage() {
               <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Contenu (EN) (Markdown)</label>
               <textarea value={editItem.content_en || ''} onChange={e => setEditItem(p => ({ ...p, content_en: e.target.value }))}
                 rows={6} className="input-glass resize-y font-mono text-xs" placeholder="Project overview…" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">Image de couverture</label>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-28 h-20 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.15)' }}
+                >
+                  {coverPreview
+                    ? <img src={coverPreview} alt="Aperçu" className="w-full h-full object-cover" />
+                    : <ImageIcon size={20} className="text-muted" />}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="btn-glass text-xs cursor-pointer inline-flex items-center gap-2 w-fit">
+                    <Upload size={13} />
+                    {coverPreview ? 'Changer l\'image' : 'Choisir une image'}
+                    <input type="file" accept="image/*" className="hidden" onChange={onCoverSelect} />
+                  </label>
+                  {coverPreview && (
+                    <button onClick={removeCover} className="text-xs text-red-400 hover:underline text-left">Retirer l&apos;image</button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Champs dynamiques du formulaire */}

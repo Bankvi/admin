@@ -31,10 +31,16 @@ export function mediaUrl(path?: string | null): string | null {
 // ── Core fetch ───────────────────────────────────────────────
 async function apiFetch<T = unknown>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
   const { access, refresh } = getTokens()
-  const headers: Record<string, string> = {
+  /*const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
+  }*/
+  const isFormData = options.body instanceof FormData
+  const headers: Record<string, string> = {
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.headers as Record<string, string>),
   }
+
   if (access) headers['Authorization'] = `Bearer ${access}`
 
   let res: Response
@@ -519,4 +525,11 @@ export const campagnes = {
   delete: (slug: string) => del(`/admin-panel/campagne-formulaire/${slug}/`),
   reponses: (slug: string) =>
     get<CampagneReponse[] | { count: number; results: CampagneReponse[] }>(`/admin-panel/campagne-formulaire/${slug}/reponses/`),
+
+  uploadCoverImage: (slug: string, file: File) => {
+    const fd = new FormData()
+    fd.append('cover_image', file)
+    return apiFetch<CampagneFormulaire>(`/admin-panel/campagne-formulaire/${slug}/`, { method: 'PATCH', body: fd })
+  },
+
 }
