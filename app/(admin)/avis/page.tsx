@@ -163,7 +163,7 @@ export default function CampagnePage() {
           <div className="space-y-3">
             {filtered.map(c => (
               <div key={c.id} className="glass-card p-5 flex items-start gap-4">
-                <button onClick={() => router.push(`/campagne/${c.slug}`)} className="flex-1 min-w-0 text-left">
+                <button onClick={() => router.push(`/avis/${c.slug}`)} className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-3 mb-1 flex-wrap">
                     <h3 className="font-display font-semibold text-primary text-base">{c.title}</h3>
                     <Badge value={c.is_published ? 'active' : 'draft'} />
