@@ -22,6 +22,7 @@ const NAV = [
   { href: '/faq', icon: HelpCircle, label: 'FAQ', roles: ['superadmin','admin','moderator'] },
   { href: '/messages', icon: Mail, label: 'Messages', roles: ['superadmin','admin','moderator'] },
   { href: '/campagne', icon : Megaphone, label : 'Campagne', roles : ['superadmin', 'admin', 'moderator']},
+  { href: '/avis', icon: Megaphone, label: 'Avis', roles: ['superadmin', 'admin', 'moderator']},
   { href: '/monitoring', icon: Activity, label: 'Monitoring', roles: ['superadmin','admin','monitoring'] },
 ]
 

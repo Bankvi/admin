@@ -477,3 +477,46 @@ export interface CreatePub{
   url? : string;
   type_id : string;
 }
+
+
+
+// ── Campagnes (Avis / Formulaires) ──────────────────────────
+export interface CampagneFormField {
+  name: string
+  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | string
+  label: string
+  nullable?: boolean
+}
+export interface CampagneFormulaire {
+  id: string
+  title: string
+  title_en: string
+  slug: string
+  content: string
+  content_en: string
+  cover_image: string | null
+  formulaire: { fields: CampagneFormField[] }
+  is_published: boolean
+  created_at: string
+  published_at: string | null
+}
+export interface CampagneReponse {
+  id: string
+  reponse_data: Record<string, string>
+  created_at: string
+}
+
+export const campagnes = {
+  adminList: async () => {
+    return withCustumFallback(
+      () => get<CampagneFormulaire[] | { count: number; results: CampagneFormulaire[] }>('/admin-panel/campagne-formulaire/'),
+      []
+    )
+  },
+  detail: (slug: string) => get<CampagneFormulaire>(`/admin-panel/campagne-formulaire/${slug}/`),
+  create: (data: Partial<CampagneFormulaire>) => post<CampagneFormulaire>('/admin-panel/campagne-formulaire/', data),
+  update: (slug: string, data: Partial<CampagneFormulaire>) => patch<CampagneFormulaire>(`/admin-panel/campagne-formulaire/${slug}/`, data),
+  delete: (slug: string) => del(`/admin-panel/campagne-formulaire/${slug}/`),
+  reponses: (slug: string) =>
+    get<CampagneReponse[] | { count: number; results: CampagneReponse[] }>(`/admin-panel/campagne-formulaire/${slug}/reponses/`),
+}
