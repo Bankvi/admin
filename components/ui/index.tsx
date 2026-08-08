@@ -73,6 +73,8 @@ const BADGE_MAP: Record<string, string> = {
   fixed: 'badge-gold', random: 'badge-submitted', wheel: 'badge-verified',
   locked: 'badge-rejected', semi_flexible: 'badge-submitted',
   expired: 'badge-rejected', inactive: 'badge-draft', scheduled: 'badge-submitted',
+  brouillon: 'badge-draft', publie: 'badge-active', termine: 'badge-completed', annule: 'badge-rejected',
+  evenement: 'badge-gold', simple: 'badge-draft',
 }
 const BADGE_LABELS: Record<string, string> = {
   verified: 'Vérifié', pending: 'En attente', submitted: 'Soumis',
@@ -83,6 +85,8 @@ const BADGE_LABELS: Record<string, string> = {
   locked: 'Bloqué', semi_flexible: 'Semi-flexible',
   monthly: 'Mensuel', weekly: 'Hebdomadaire', daily: 'Quotidien',
   expired: 'Expirée', inactive: 'Inactive', scheduled: 'Programmée',
+  brouillon: 'Brouillon', publie: 'Publié', termine: 'Terminé', annule: 'Annulé',
+  evenement: 'Évènement', simple: 'Simple',
 }
 export function Badge({ value }: { value: string }) {
   return (

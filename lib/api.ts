@@ -324,6 +324,212 @@ export const typepub = {
     post<PubTypeLigth>('/admin-panel/typepub/', data),
 }
 
+// ── Évènements & Billetterie ─────────────────────────────────
+export interface DetailField {
+  name: string
+  type: string
+  label: string
+  value?: string
+}
+export interface DetailsJson { fields: DetailField[] }
+
+export interface TypeTicketAdmin {
+  id: string
+  evenement: string
+  nom: string
+  nom_en: string
+  description: string
+  description_en: string
+  details: DetailsJson | Record<string, never>
+  image: string | null
+  prix: number | string
+  promo_percent: number | string
+  prix_effectif: number | string
+  stock_initial: number
+  stock_reserve: number
+  stock_vendu: number
+  stock_disponible: number
+  is_active: boolean
+  ordre: number
+  created_at: string
+}
+
+export interface EvenementAdmin {
+  id: string
+  titre: string
+  titre_en: string
+  slug: string
+  description: string
+  description_en: string
+  cover: string | null
+  lieu: string
+  details: DetailsJson | Record<string, never>
+  date_debut: string
+  date_fin: string
+  date_fin_vente: string
+  statut: 'brouillon' | 'publie' | 'termine' | 'annule'
+  evente_balance: number | string
+  tickets_vendus: number
+  nb_scans: number
+  created_by: string | null
+  created_at: string
+  published_at: string | null
+  types_tickets: TypeTicketAdmin[]
+}
+
+export interface EvenementStats {
+  evenement: { id: string; titre: string; statut: string }
+  evente_balance: number
+  tickets_vendus: number
+  tickets_scannes: number
+  par_type: {
+    type_ticket_id: string; nom: string
+    prix: number; promo_percent: number; prix_effectif: number
+    stock_initial: number; stock_reserve: number; stock_vendu: number
+    stock_disponible: number; chiffre_affaires: number
+  }[]
+  tironiennes: {
+    total: number; actives: number; terminees: number
+    annulees: number; epargne_en_cours: number
+  }
+}
+
+export interface ScanEntry {
+  id: string
+  vrai_ticket: string
+  code_ticket: string
+  nom_porteur: string
+  type_ticket_nom: string
+  scanne_par: string | null
+  scanne_par_nom: string | null
+  scanne_at: string
+  note: string
+}
+
+// Le champ `details` est un JSONField : il ne passe pas correctement en
+// multipart. On envoie donc les données en JSON, puis le fichier séparément
+// (même approche que campagnes.uploadCoverImage).
+export const evenements = {
+  list: (params?: string) =>
+    get<PaginatedResponse<EvenementAdmin> | EvenementAdmin[]>(
+      `/admin-panel/evenements/${params ? '?' + params : ''}`
+    ),
+  detail: (id: string) => get<EvenementAdmin>(`/admin-panel/evenements/${id}/`),
+  create: (data: Partial<EvenementAdmin>) =>
+    post<EvenementAdmin>('/admin-panel/evenements/', data),
+  update: (id: string, data: Partial<EvenementAdmin>) =>
+    patch<EvenementAdmin>(`/admin-panel/evenements/${id}/`, data),
+  delete: (id: string) => del(`/admin-panel/evenements/${id}/`),
+  publier: (id: string) => post(`/admin-panel/evenements/${id}/publier/`, {}),
+  annuler: (id: string) => post(`/admin-panel/evenements/${id}/annuler/`, {}),
+  stats: (id: string) => get<EvenementStats>(`/admin-panel/evenements/${id}/stats/`),
+  scans: (id: string) =>
+    get<PaginatedResponse<ScanEntry> | ScanEntry[]>(`/evenements/${id}/scans/`),
+
+  uploadCover: (id: string, file: File) => {
+    const fd = new FormData()
+    fd.append('cover', file)
+    return apiFetch<EvenementAdmin>(`/admin-panel/evenements/${id}/`, { method: 'PATCH', body: fd })
+  },
+}
+
+// ── Scan / contrôle des tickets ──────────────────────────────
+export interface ScanPorteur {
+  user_id: string
+  nom: string
+  telephone: string
+  photo: string | null
+}
+export interface ScanResult {
+  statut: 'VALIDE' | 'DEJA_UTILISE' | 'INVALIDE'
+  message: string
+  ticket_id?: string
+  code_ticket?: string
+  type_ticket?: string
+  evenement?: string
+  date_payement?: string
+  prix_paye?: number
+  porteur?: ScanPorteur
+  scanne_par?: string
+  scanne_at?: string
+}
+
+// Le backend répond 200 (VALIDE), 409 (déjà scanné) ou 400 (invalide).
+// apiFetch lèverait une exception sur 409/400 en perdant la charge utile :
+// on fait donc une requête dédiée qui lit le corps quel que soit le statut.
+async function scanRequest(path: string, qr_content: string, retry = true): Promise<ScanResult> {
+  const { access, refresh } = getTokens()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (access) headers['Authorization'] = `Bearer ${access}`
+
+  let res: Response
+  try {
+    res = await fetch(`${API}${path}`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ qr_content }),
+      signal: AbortSignal.timeout(15000),
+    })
+  } catch {
+    throw new Error('NETWORK_ERROR')
+  }
+
+  if (res.status === 401 && retry && refresh) {
+    const r = await fetch(`${API}/auth/token/refresh/`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh }),
+    }).catch(() => null)
+    if (r?.ok) {
+      const d = await r.json()
+      setTokens(d.access, refresh)
+      return scanRequest(path, qr_content, false)
+    }
+    clearTokens()
+    if (typeof window !== 'undefined') window.location.href = '/login'
+    throw new Error('Session expirée')
+  }
+
+  if (res.status === 403) throw new Error("Vous n'avez pas le droit de scanner les tickets.")
+
+  let body: {
+    success?: boolean; message?: string
+    data?: Record<string, unknown>; errors?: Record<string, unknown>
+  }
+  try { body = await res.json() } catch { throw new Error(`Erreur ${res.status}`) }
+
+  const payload = (body.data || body.errors || {}) as Record<string, unknown>
+  const statut = (payload.statut as ScanResult['statut']) ||
+    (res.ok ? 'VALIDE' : 'INVALIDE')
+
+  return {
+    ...(payload as unknown as ScanResult),
+    statut,
+    message: body.message || (res.ok ? 'Ticket valide' : 'Ticket invalide'),
+  }
+}
+
+export const scan = {
+  // Consomme le ticket (irréversible)
+  valider: (qr_content: string) => scanRequest('/evenements/scan/', qr_content),
+  // Vérifie sans consommer
+  verifier: (qr_content: string) => scanRequest('/evenements/scan/verifier/', qr_content),
+}
+
+export const typesTickets = {
+  list: (evenementId: string) =>
+    get<TypeTicketAdmin[]>(`/admin-panel/evenements/${evenementId}/tickets/`),
+  create: (evenementId: string, data: Partial<TypeTicketAdmin>) =>
+    post<TypeTicketAdmin>(`/admin-panel/evenements/${evenementId}/tickets/`, data),
+  update: (ticketId: string, data: Partial<TypeTicketAdmin>) =>
+    patch<TypeTicketAdmin>(`/admin-panel/evenements/tickets/${ticketId}/`, data),
+  delete: (ticketId: string) => del(`/admin-panel/evenements/tickets/${ticketId}/`),
+
+  uploadImage: (ticketId: string, file: File) => {
+    const fd = new FormData()
+    fd.append('image', file)
+    return apiFetch<TypeTicketAdmin>(`/admin-panel/evenements/tickets/${ticketId}/`, { method: 'PATCH', body: fd })
+  },
+}
+
 // ── Monitoring / Logs ────────────────────────────────────────
 export const monitoring = {
   logs: async (collection: string, limit = 50) => {

@@ -8,7 +8,7 @@ import { createWebSocket } from '@/lib/api'
 import {
   LayoutDashboard, Users, RefreshCw, PiggyBank, Wallet,
   Bell, FileText, HelpCircle, Mail, Activity,
-  LogOut, Sun, Moon, ShieldCheck, Menu, X, ChevronRight, Megaphone
+  LogOut, Sun, Moon, ShieldCheck, Menu, X, ChevronRight, Megaphone, Ticket, ScanLine
 } from 'lucide-react'
 
 const NAV = [
@@ -16,6 +16,8 @@ const NAV = [
   { href: '/users', icon: Users, label: 'Utilisateurs', roles: ['superadmin','admin','moderator'] },
   { href: '/esso', icon: RefreshCw, label: 'ESSO — Tontines', roles: ['superadmin','admin','moderator'] },
   { href: '/tironiennes', icon: PiggyBank, label: 'Tironiennes', roles: ['superadmin','admin'] },
+  { href: '/evenements', icon: Ticket, label: 'Évènements', roles: ['superadmin','admin'] },
+  { href: '/controle-tickets', icon: ScanLine, label: 'Contrôle tickets', roles: ['superadmin','admin','moderator'] },
   { href: '/transactions', icon: Wallet, label: 'Transactions', roles: ['superadmin','admin','monitoring'] },
   { href: '/notifications', icon: Bell, label: 'Notifications', roles: ['superadmin','admin'] },
   { href: '/blog', icon: FileText, label: 'Blog', roles: ['superadmin','admin','moderator'] },
