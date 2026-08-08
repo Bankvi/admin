@@ -3,7 +3,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { campagnes as campagneApi, type CampagneFormulaire, type CampagneReponse } from '@/lib/api'
 import { PageHeader, Skeleton, Empty, useToast, fmtDateTime } from '@/components/ui'
-import { ArrowLeft, Inbox } from 'lucide-react'
+import { ArrowLeft, Inbox, Download } from 'lucide-react'
+import { Modal } from '@/components/ui' 
+
+
 
 export default function CampagneReponsesPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -12,6 +15,9 @@ export default function CampagneReponsesPage() {
   const [campagne, setCampagne] = useState<CampagneFormulaire | null>(null)
   const [reponses, setReponses] = useState<CampagneReponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [showExport, setShowExport] = useState(false)
+  const [selectedCols, setSelectedCols] = useState<string[]>([])
+
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -27,6 +33,46 @@ export default function CampagneReponsesPage() {
 
   const columns = campagne?.formulaire?.fields ?? []
 
+  const exportableColumns = [
+    ...columns.map(c => ({ key: c.name, label: c.label })),
+    { key: 'created_at', label: 'Date' },
+  ]
+
+  const toggleCol = (key: string) =>
+    setSelectedCols(s => s.includes(key) ? s.filter(k => k !== key) : [...s, key])
+
+  const openExport = () => {
+    setSelectedCols(exportableColumns.map(c => c.key)) // tout coché par défaut
+    setShowExport(true)
+  }
+
+  const csvEscape = (v: unknown) => {
+    const s = String(v ?? '')
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+
+  const downloadCSV = () => {
+    const cols = exportableColumns.filter(c => selectedCols.includes(c.key))
+    if (!cols.length) return
+
+    const header = cols.map(c => csvEscape(c.label)).join(',')
+    const rows = reponses.map(r =>
+      cols.map(c =>
+        csvEscape(c.key === 'created_at' ? fmtDateTime(r.created_at) : r.reponse_data?.[c.key])
+      ).join(',')
+    )
+    const csv = '\uFEFF' + [header, ...rows].join('\n') // \uFEFF = BOM pour Excel (accents)
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${campagne?.slug || 'avis'}-reponses.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    setShowExport(false)
+  }
+
   return (
     <div className="p-6 lg:p-8">
       <button onClick={() => router.push('/campagne')} className="flex items-center gap-2 text-sm text-muted hover:text-gold mb-4">
@@ -35,6 +81,13 @@ export default function CampagneReponsesPage() {
       <PageHeader
         title={campagne?.title ?? '...'}
         subtitle={`${reponses.length} réponse${reponses.length > 1 ? 's' : ''}`}
+        action={
+          reponses.length > 0 && (
+            <button onClick={openExport} className="btn-glass flex items-center gap-2">
+              <Download size={15} /> Exporter CSV
+            </button>
+          )
+        }
       />
 
       {loading ? <div className="p-6"><Skeleton rows={5} /></div> : !reponses.length
@@ -61,8 +114,36 @@ export default function CampagneReponsesPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div>   
         )}
+
+        <Modal open={showExport} onClose={() => setShowExport(false)} title="Exporter en CSV" size="sm">
+              <div className="space-y-4">
+                <p className="text-sm text-muted">Choisis les colonnes à inclure dans l'export.</p>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {exportableColumns.map(c => (
+                    <label key={c.key} className="flex items-center gap-2 text-sm text-secondary cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedCols.includes(c.key)}
+                        onChange={() => toggleCol(c.key)}
+                      />
+                      {c.label}
+                    </label>
+                  ))}
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button onClick={() => setShowExport(false)} className="btn-glass flex-1">Annuler</button>
+                  <button
+                    onClick={downloadCSV}
+                    disabled={!selectedCols.length}
+                    className="btn-gold flex-1 disabled:opacity-50"
+                  >
+                    Télécharger
+                  </button>
+                </div>
+              </div>
+          </Modal>
     </div>
   )
 }
